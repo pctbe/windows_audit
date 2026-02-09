@@ -8057,6 +8057,10 @@ function Start-SecurityAudit {
     if (-not (Test-IsAdmin)) {
         Write-AuditLog "WARNING: Running without admin privileges. Some checks may be limited." -Level "WARN"
     }
+
+    if ($SkipNetworkChecks) {
+        Write-AuditLog "Network checks will be skipped per user request." -Level "INFO"
+    }
     
     # Run all audit modules
     $modules = @(
