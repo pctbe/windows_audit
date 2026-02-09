@@ -8057,64 +8057,86 @@ function Start-SecurityAudit {
     if (-not (Test-IsAdmin)) {
         Write-AuditLog "WARNING: Running without admin privileges. Some checks may be limited." -Level "WARN"
     }
+
+    if ($SkipNetworkChecks) {
+        Write-AuditLog "Network checks will be skipped per user request." -Level "INFO"
+    }
     
     # Run all audit modules
     $modules = @(
-        { Get-SystemInformation },
-        { Test-MDMEnrollment },
-        { Get-SoftwareInventory },
-        { Test-PasswordPolicy },
-        { Test-UserAccounts },
-        { Test-AuditPolicy },
-        { Test-SecurityOptions },
-        { Test-WindowsFeatures },
-        { Test-Services },
-        { Test-NetworkConfiguration },
-        { Test-NetworkProtocols },
-        { Test-RemoteAccess },
-        { Test-PrivilegeEscalation },
-        { Test-SecureBoot },
-        { Test-DefenderASR },
-        { Test-AppLockerWDAC },
-        { Test-ExploitProtection },
-        { Test-InstalledSoftware },
-        { Test-OfficeSecurity },
-        { Test-BrowserSecurity },
-        { Get-VSCodeExtensions },
-        { Test-PowerShellSecurity },
-        { Test-ScheduledTasks },
-        { Test-UpdateStatus },
-        { Test-HotfixStatus },
-        { Test-BitLockerStatus },
-        { Test-CredentialStorage },
-        { Test-CredentialCaching },
-        { Test-LAPS },
-        { Test-AutoRunLocations },
-        { Test-MediaAutoPlay },
-        { Test-EventLogConfiguration },
-        { Test-InactivityTimeout },
-        { Test-CertificateSecurity },
-        { Test-DNSSecurity },
-        { Test-FileSystemPermissions },
-        { Test-RegistryPermissions },
-        { Test-UserRightsAssignments },
-        { Test-GroupMemberships },
-        { Test-TimeSynchronization },
-        { Test-DMAProtection },
-        { Test-DriverSigning },
-        { Test-ShadowCopies },
-        { Test-WindowsSubsystems },
-        { Test-TelemetryPrivacy },
-        { Test-SystemToolAccess },
-        { Test-WindowsRecall }
+        [PSCustomObject]@{ Name = "Get-SystemInformation";    IsNetwork = $false; Script = { Get-SystemInformation } },
+        [PSCustomObject]@{ Name = "Test-MDMEnrollment";       IsNetwork = $false; Script = { Test-MDMEnrollment } },
+        [PSCustomObject]@{ Name = "Get-SoftwareInventory";    IsNetwork = $false; Script = { Get-SoftwareInventory } },
+        [PSCustomObject]@{ Name = "Test-PasswordPolicy";      IsNetwork = $false; Script = { Test-PasswordPolicy } },
+        [PSCustomObject]@{ Name = "Test-UserAccounts";        IsNetwork = $false; Script = { Test-UserAccounts } },
+        [PSCustomObject]@{ Name = "Test-AuditPolicy";         IsNetwork = $false; Script = { Test-AuditPolicy } },
+        [PSCustomObject]@{ Name = "Test-SecurityOptions";     IsNetwork = $false; Script = { Test-SecurityOptions } },
+        [PSCustomObject]@{ Name = "Test-WindowsFeatures";     IsNetwork = $false; Script = { Test-WindowsFeatures } },
+        [PSCustomObject]@{ Name = "Test-Services";            IsNetwork = $false; Script = { Test-Services } },
+        [PSCustomObject]@{ Name = "Test-NetworkConfiguration"; IsNetwork = $true; Script = { Test-NetworkConfiguration } },
+        [PSCustomObject]@{ Name = "Test-NetworkProtocols";    IsNetwork = $true; Script = { Test-NetworkProtocols } },
+        [PSCustomObject]@{ Name = "Test-RemoteAccess";        IsNetwork = $true; Script = { Test-RemoteAccess } },
+        [PSCustomObject]@{ Name = "Test-PrivilegeEscalation"; IsNetwork = $false; Script = { Test-PrivilegeEscalation } },
+        [PSCustomObject]@{ Name = "Test-SecureBoot";          IsNetwork = $false; Script = { Test-SecureBoot } },
+        [PSCustomObject]@{ Name = "Test-DefenderASR";         IsNetwork = $false; Script = { Test-DefenderASR } },
+        [PSCustomObject]@{ Name = "Test-AppLockerWDAC";       IsNetwork = $false; Script = { Test-AppLockerWDAC } },
+        [PSCustomObject]@{ Name = "Test-ExploitProtection";   IsNetwork = $false; Script = { Test-ExploitProtection } },
+        [PSCustomObject]@{ Name = "Test-InstalledSoftware";   IsNetwork = $false; Script = { Test-InstalledSoftware } },
+        [PSCustomObject]@{ Name = "Test-OfficeSecurity";      IsNetwork = $false; Script = { Test-OfficeSecurity } },
+        [PSCustomObject]@{ Name = "Test-BrowserSecurity";     IsNetwork = $false; Script = { Test-BrowserSecurity } },
+        [PSCustomObject]@{ Name = "Get-VSCodeExtensions";     IsNetwork = $false; Script = { Get-VSCodeExtensions } },
+        [PSCustomObject]@{ Name = "Test-PowerShellSecurity";  IsNetwork = $false; Script = { Test-PowerShellSecurity } },
+        [PSCustomObject]@{ Name = "Test-ScheduledTasks";      IsNetwork = $false; Script = { Test-ScheduledTasks } },
+        [PSCustomObject]@{ Name = "Test-UpdateStatus";        IsNetwork = $false; Script = { Test-UpdateStatus } },
+        [PSCustomObject]@{ Name = "Test-HotfixStatus";        IsNetwork = $false; Script = { Test-HotfixStatus } },
+        [PSCustomObject]@{ Name = "Test-BitLockerStatus";     IsNetwork = $false; Script = { Test-BitLockerStatus } },
+        [PSCustomObject]@{ Name = "Test-CredentialStorage";   IsNetwork = $false; Script = { Test-CredentialStorage } },
+        [PSCustomObject]@{ Name = "Test-CredentialCaching";   IsNetwork = $false; Script = { Test-CredentialCaching } },
+        [PSCustomObject]@{ Name = "Test-LAPS";                IsNetwork = $false; Script = { Test-LAPS } },
+        [PSCustomObject]@{ Name = "Test-AutoRunLocations";    IsNetwork = $false; Script = { Test-AutoRunLocations } },
+        [PSCustomObject]@{ Name = "Test-MediaAutoPlay";       IsNetwork = $false; Script = { Test-MediaAutoPlay } },
+        [PSCustomObject]@{ Name = "Test-EventLogConfiguration"; IsNetwork = $false; Script = { Test-EventLogConfiguration } },
+        [PSCustomObject]@{ Name = "Test-InactivityTimeout";   IsNetwork = $false; Script = { Test-InactivityTimeout } },
+        [PSCustomObject]@{ Name = "Test-CertificateSecurity"; IsNetwork = $false; Script = { Test-CertificateSecurity } },
+        [PSCustomObject]@{ Name = "Test-DNSSecurity";         IsNetwork = $true; Script = { Test-DNSSecurity } },
+        [PSCustomObject]@{ Name = "Test-FileSystemPermissions"; IsNetwork = $false; Script = { Test-FileSystemPermissions } },
+        [PSCustomObject]@{ Name = "Test-RegistryPermissions"; IsNetwork = $false; Script = { Test-RegistryPermissions } },
+        [PSCustomObject]@{ Name = "Test-UserRightsAssignments"; IsNetwork = $false; Script = { Test-UserRightsAssignments } },
+        [PSCustomObject]@{ Name = "Test-GroupMemberships";    IsNetwork = $false; Script = { Test-GroupMemberships } },
+        [PSCustomObject]@{ Name = "Test-TimeSynchronization"; IsNetwork = $false; Script = { Test-TimeSynchronization } },
+        [PSCustomObject]@{ Name = "Test-DMAProtection";       IsNetwork = $false; Script = { Test-DMAProtection } },
+        [PSCustomObject]@{ Name = "Test-DriverSigning";       IsNetwork = $false; Script = { Test-DriverSigning } },
+        [PSCustomObject]@{ Name = "Test-ShadowCopies";        IsNetwork = $false; Script = { Test-ShadowCopies } },
+        [PSCustomObject]@{ Name = "Test-WindowsSubsystems";   IsNetwork = $false; Script = { Test-WindowsSubsystems } },
+        [PSCustomObject]@{ Name = "Test-TelemetryPrivacy";    IsNetwork = $false; Script = { Test-TelemetryPrivacy } },
+        [PSCustomObject]@{ Name = "Test-SystemToolAccess";    IsNetwork = $false; Script = { Test-SystemToolAccess } },
+        [PSCustomObject]@{ Name = "Test-WindowsRecall";       IsNetwork = $false; Script = { Test-WindowsRecall } }
     )
     
+    $skippedNetworkModules = @()
     foreach ($module in $modules) {
-        try {
-            & $module
-        } catch {
-            Write-AuditLog "Module failed: $_" -Level "ERROR"
+        if ($SkipNetworkChecks -and $module.IsNetwork) {
+            Write-AuditLog "Skipping network module: $($module.Name)" -Level "INFO"
+            $skippedNetworkModules += $module.Name
+            continue
         }
+        
+        try {
+            & $module.Script
+        } catch {
+            Write-AuditLog "Module failed: $($module.Name) - $_" -Level "ERROR"
+            Add-Finding -Category "Runtime" -Name "Module Failed: $($module.Name)" -Risk "Info" `
+                -Description "Audit module threw an exception during execution" `
+                -Details "Module: $($module.Name)`nError: $_" `
+                -Recommendation "Review module logic and ensure prerequisites are available"
+        }
+    }
+    
+    if ($SkipNetworkChecks -and $skippedNetworkModules.Count -gt 0) {
+        $skippedList = $skippedNetworkModules -join ", "
+        Add-Finding -Category "Network" -Name "Network Checks Skipped" -Risk "Info" `
+            -Description "Network-related modules were skipped per user request" `
+            -Details "Skipped modules: $skippedList"
     }
     
     # Generate Cyber Essentials Summary after all modules have run
